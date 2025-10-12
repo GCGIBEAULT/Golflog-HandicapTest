@@ -1,5 +1,14 @@
 // script.js
 document.addEventListener('DOMContentLoaded', () => {
+ const dateField = document.getElementById("date");
+if (dateField && !dateField.value) {
+  const today = new Date();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const yyyy = today.getFullYear();
+  dateField.value = `${mm}/${dd}/${yyyy}`;
+}
+ 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
 
