@@ -74,10 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById("handicap").value = handicapVal;
     }
 
-    const handicap = handicapVal;
-
-const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | ${notes}`;
-
+    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | ${notes}`;
     const timestamp = new Date().toISOString();
 
     try {
@@ -92,7 +89,6 @@ const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | 
     if (form) try { form.reset(); } catch (e) {}
 
     const ids = ["date", "course", "score", "slope", "notes"];
-
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -103,6 +99,9 @@ const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | 
         } catch (e) {}
       }
     });
+
+    // Reapply handicap after reset
+    document.getElementById("handicap").value = handicapVal;
 
     setTimeout(() => {
       const dateField = document.getElementById("date");
