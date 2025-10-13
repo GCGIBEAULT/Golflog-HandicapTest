@@ -1,114 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Golf Log</title>
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      margin: 20px;
-      color: #111;
-    }
-    h1 {
-      font-size: 1.4rem;
-      margin-bottom: 12px;
-    }
-    form {
-      max-width: 680px;
-      margin-bottom: 20px;
-    }
-    .row {
-      margin-bottom: 12px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 8px;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    textarea {
-      resize: vertical;
-      min-height: 60px;
-    }
-    button#saveBtn {
-      padding: 10px 14px;
-      background: #0078d4;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    #savedRounds {
-      margin-top: 24px;
-    }
-    .round-entry {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-    .round-text {
-      font-size: 0.95rem;
-      color: #222;
-    }
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #c00;
-      font-size: 18px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <h1>Golf Log</h1>
-  <form id="roundForm" autocomplete="off" novalidate>
-    <div class="row">
-      <label for="date">Date</label>
-      <input id="date" name="date" type="text" placeholder="mm/dd/yyyy"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+document.addEventListener('DOMContentLoaded', () => {
+  // ✅ Autofill today's date
+  document.getElementById("date").value = new Date().toLocaleDateString("en-US");
 
-    <div class="row">
-      <label for="course">Course Name</label>
-      <input id="course" name="course" type="text"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+  const saveBtn = document.getElementById("saveBtn");
+  const savedRounds = document.getElementById("savedRounds");
+  if (!savedRounds) {
+    console.error("Missing #savedRounds element — check HTML IDs");
+    return;
+  }
 
-    <div class="row">
-      <label for="score">Score</label>
-      <input id="score" name="score" type="number"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+  const dateEl = document.getElementById("date");
+  const courseEl = document.getElementById("course");
+  if (dateEl && courseEl) {
+    dateEl.addEventListener("keydown", e => {
+      const isEnter = e.key === "Enter" || e.code === "Enter" || e.keyCode === 13;
+      if (!isEnter || document.activeElement !== dateEl) return;
+      e.preventDefault(); e.stopPropagation();
+      setTimeout(() => courseEl.focus(), 0);
+    });
+  }
 
-    <div class="row">
-      <label for="slope">Slope</label>
-      <input id="slope" name="slope" type="number"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 
-    <div class="row">
-      <label for="handicap">Handicap</label>
-      <input id="handicap" name="handicap" type="text" readonly tabindex="-1" placeholder="—"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        style="background-color:#f3f3f3;color:#888;" />
-    </div>
+  function displayRounds() {
+    savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("round_")) keys.push(key);
+    }
+    keys.sort().reverse();
+    for (const key of keys) {
+      const round = localStorage.getItem(key) || "";
+      const entry = document.createElement("div");
+      entry.className = "round-entry";
+      entry.innerHTML = `
+        <span class="round-text">${escapeHtml(round)}</span>
+        <button class="delete-btn" data-key="${key}" title="Delete this round">×</button>
+      `;
+      savedRounds.appendChild(entry);
+      const del = entry.querySelector(".delete-btn");
+      if (del) {
+        del.addEventListener("click", function () {
+          const keyToDelete = this.getAttribute("data-key");
+          if (keyToDelete) {
+            localStorage.removeItem(keyToDelete);
+            displayRounds();
+          }
+        });
+      }
+    }
+  }
 
-    <div class="row">
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    </div>
+  function saveRound() {
+    const date = document.getElementById("date")?.value || "";
+    const course = document.getElementById("course")?.value || "";
+    const score = document.getElementById("score")?.value || "";
+    const slope = document.getElementById("slope")?.value || "";
+    const handicap = document.getElementById("handicap")?.value || "";
+    const notes = document.getElementById("notes")?.value || "";
 
-document.getElementById('saveBtn').addEventListener('click', saveRound);
+    const round = `${date} — ${course} | Score: ${score}, Slope: ${slope}, Handicap: ${handicap} | ${notes}`;
+    const timestamp = new Date().toISOString();
+    try {
+      localStorage.setItem("round_" + timestamp, round);
+    } catch (err) {
+      console.warn("localStorage write failed", err);
+    }
+
+    displayRounds();
+
+    const form = document.getElementById("roundForm") || document.querySelector("form");
+    if (form) try { form.reset(); } catch (e) {}
+
+    const ids = ["date", "course", "score", "slope", "handicap", "notes"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        try {
+          el.value = "";
+          el.removeAttribute && el.removeAttribute('value');
+          el.blur();
+        } catch (e) {}
+      }
+    });
+
+    setTimeout(() => {
+      const dateField = document.getElementById("date");
+      if (dateField) {
+        try {
+          dateField.value = new Date().toLocaleDateString("en-US");
+          dateField.focus();
+          if (dateField.setSelectionRange) dateField.setSelectionRange(0, 0);
+        } catch (e) {}
+      }
+    }, 150);
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      saveRound();
+    });
+  }
+
+  displayRounds();
+});
