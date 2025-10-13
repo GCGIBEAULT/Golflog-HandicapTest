@@ -153,3 +153,20 @@ function updateHandicap() {
   const adjustedHandicap = rawHandicap / rounds;
   document.getElementById('handicapOutput').textContent = adjustedHandicap.toFixed(2);
 }
+const testRounds = [];
+
+function calculateTestHandicap() {
+  const score = parseFloat(document.getElementById('scoreInput').value);
+  const slope = parseFloat(document.getElementById('slopeInput').value);
+
+  if (isNaN(score) || isNaN(slope) || slope === 0) return;
+
+  const scaled = (score * 113) / slope;
+  testRounds.push(scaled);
+
+  const total = testRounds.reduce((sum, h) => sum + h, 0);
+  const average = total / testRounds.length;
+
+  document.getElementById('roundsInput').value = testRounds.length;
+  document.getElementById('handicapOutput').textContent = average.toFixed(1);
+}
