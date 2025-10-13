@@ -1,66 +1,119 @@
-const rounds = [];
-const handicapRounds = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Golf Log</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 20px;
+      color: #111;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+    form {
+      max-width: 680px;
+      margin-bottom: 20px;
+    }
+    .row {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    button#saveBtn {
+      padding: 10px 14px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #savedRounds {
+      margin-top: 24px;
+    }
+    .round-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .round-text {
+      font-size: 0.95rem;
+      color: #222;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #c00;
+      font-size: 18px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Golf Log</h1>
+  <form id="roundForm" autocomplete="off" novalidate>
+    <div class="row">
+      <label for="date">Date</label>
+      <input id="date" name="date" type="text" placeholder="mm/dd/yyyy"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-function saveRound() {
-  const score = parseFloat(document.getElementById('score').value);
-  const slope = parseFloat(document.getElementById('slope').value);
-  const course = document.getElementById('course').value;
-  const date = document.getElementById('date').value;
-  const notes = document.getElementById('notes').value;
+    <div class="row">
+      <label for="course">Course Name</label>
+      <input id="course" name="course" type="text"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-  if (isNaN(score) || isNaN(slope) || slope === 0) return;
+    <div class="row">
+      <label for="score">Score</label>
+      <input id="score" name="score" type="number"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-  const scaledHandicap = (score * 113) / slope;
-  handicapRounds.push(scaledHandicap);
+    <div class="row">
+      <label for="slope">Slope</label>
+      <input id="slope" name="slope" type="number"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-  rounds.push({ score, slope, scaledHandicap, course, date, notes });
+    <div class="row">
+      <label for="handicap">Handicap</label>
+      <input id="handicap" name="handicap" type="text" readonly tabindex="-1" placeholder="—"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        style="background-color:#f3f3f3;color:#888;" />
+    </div>
 
-  updateHandicapEstimate();
-  displayRounds();
-  clearInputs();
-}
+    <div class="row">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    </div>
 
-function updateHandicapEstimate() {
-  if (handicapRounds.length === 0) return;
+    <button id="saveBtn" type="button">Save Round</button>
+  </form>
 
-  const total = handicapRounds.reduce((sum, h) => sum + h, 0);
-  const average = total / handicapRounds.length;
-
-  document.getElementById('handicap').value = average.toFixed(1);
-}
-
-function displayRounds() {
-  const container = document.getElementById('savedRounds');
-  container.innerHTML = '';
-
-  rounds.forEach((round, index) => {
-    const div = document.createElement('div');
-    div.className = 'round-entry';
-
-    const text = document.createElement('div');
-    text.className = 'round-text';
-    text.textContent = `${round.date} — ${round.course} — Score: ${round.score} — Slope: ${round.slope} — Handicap: ${round.scaledHandicap.toFixed(1)}`;
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = '×';
-    deleteBtn.onclick = () => {
-      rounds.splice(index, 1);
-      handicapRounds.splice(index, 1);
-      updateHandicapEstimate();
-      displayRounds();
-    };
-
-    div.appendChild(text);
-    div.appendChild(deleteBtn);
-    container.appendChild(div);
-  });
-}
-
-function clearInputs() {
-  document.getElementById('score').value = '';
-  document.getElementById('slope').value = '';
-  document.getElementById('course').value = '';
-  document.getElementById('date').value = '';
-  document.getElementById('notes').value = '';
-}
+  <div id="savedRounds"></div>
+</body>
+</html>
