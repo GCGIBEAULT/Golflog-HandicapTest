@@ -192,6 +192,14 @@
       displayRounds();
     });
   </script>
+<!-- HandicapTest Block: Single Round Differential -->
+<div id="handicap-block">
+  <label>Score: <input type="number" id="score" /></label><br>
+  <label>Course Rating: <input type="number" id="courseRating" step="0.1" /></label><br>
+  <label>Slope Rating: <input type="number" id="slopeRating" /></label><br>
+  <button onclick="calculateDifferential()">Calculate Differential</button>
+  <p><strong>Differential:</strong> <span id="differentialOutput">—</span></p>
+</div>
 
 </body>
 </html>
