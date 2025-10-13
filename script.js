@@ -26,6 +26,35 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, "&#39;");
   }
 
+  function calculateCumulativeHandicap() {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
+    const handicaps = [];
+
+    keys.forEach(key => {
+      const round = localStorage.getItem(key);
+      const match = round.match(/Score: (\\d+), Slope: (\\d+)/);
+      if (match) {
+        const score = parseFloat(match[1]);
+        const slope = parseFloat(match[2]);
+        if (!isNaN(score) && !isNaN(slope) && slope !== 0) {
+          const scaled = ((score - 72) / slope) * 113;
+          const h = Math.max(0, Math.min(scaled, 36));
+          handicaps.push(h);
+        }
+      }
+    });
+
+    const handicapField = document.getElementById("handicap");
+    if (handicapField) {
+      if (handicaps.length > 0) {
+        const avg = handicaps.reduce((a, b) => a + b, 0) / handicaps.length;
+        handicapField.value = avg.toFixed(1);
+      } else {
+        handicapField.value = "—";
+      }
+    }
+  }
+
   function displayRounds() {
     savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
     const keys = [];
@@ -54,10 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
           if (keyToDelete) {
             localStorage.removeItem(keyToDelete);
             displayRounds();
+            calculateCumulativeHandicap();
           }
         });
       }
     }
+
+    calculateCumulativeHandicap();
   }
 
   function saveRound() {
@@ -71,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
       const scaled = ((scoreVal - 72) / slopeVal) * 113;
       handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
-      document.getElementById("handicap").value = handicapVal;
     }
 
     const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | ${notes}`;
@@ -99,9 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
       }
     });
-
-    // Reapply handicap after reset
-    document.getElementById("handicap").value = handicapVal;
 
     setTimeout(() => {
       const dateField = document.getElementById("date");
