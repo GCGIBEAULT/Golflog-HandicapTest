@@ -126,3 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   displayRounds();
 });
+function calculateDifferential() {
+  const score = parseFloat(document.getElementById('score').value);
+  const courseRating = parseFloat(document.getElementById('courseRating').value);
+  const slopeRating = parseFloat(document.getElementById('slopeRating').value);
+
+  if (isNaN(score) || isNaN(courseRating) || isNaN(slopeRating) || slopeRating === 0) {
+    document.getElementById('differentialOutput').textContent = 'Invalid input';
+    return;
+  }
+
+  const differential = ((score - courseRating) * 113) / slopeRating;
+  document.getElementById('differentialOutput').textContent = differential.toFixed(1);
+}
