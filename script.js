@@ -76,7 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handicap = handicapVal;
 
-    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Handicap: ${handicap} | ${notes}`;
+const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | ${notes}`;
+
     const timestamp = new Date().toISOString();
 
     try {
