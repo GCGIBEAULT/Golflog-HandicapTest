@@ -6,23 +6,73 @@
   <title>Golf Log</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    body { font-family: system-ui, sans-serif; margin: 20px; color: #111; }
-    h1 { font-size: 1.4rem; margin-bottom: 12px; }
-    form { max-width: 680px; margin-bottom: 20px; }
-    .row { margin-bottom: 12px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; }
-    input, textarea { width: 100%; padding: 8px; font-size: 1rem; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    textarea { resize: vertical; min-height: 60px; }
-    button#saveBtn { padding: 10px 14px; background: #0078d4; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    #savedRounds { margin-top: 24px; }
-    .round-entry { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; }
-    .round-text { font-size: 0.95rem; color: #222; }
-    .delete-btn { background: none; border: none; color: #c00; font-size: 18px; cursor: pointer; }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 20px;
+      color: #111;
+    }
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+    form {
+      max-width: 680px;
+      margin-bottom: 20px;
+    }
+    .row {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    button#saveBtn {
+      padding: 10px 14px;
+      background: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #savedRounds {
+      margin-top: 24px;
+    }
+    .round-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .round-text {
+      font-size: 0.95rem;
+      color: #222;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #c00;
+      font-size: 18px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Golf Log</h1>
-
   <form id="roundForm" autocomplete="off" novalidate>
     <div class="row">
       <label for="date">Date</label>
@@ -36,45 +86,34 @@
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
     </div>
 
-<div class="row">
-  <label for="score">Score</label>
-  <input id="score" name="score" type="number"
-    placeholder="Enter score"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-</div>
+    <div class="row">
+      <label for="score">Score</label>
+      <input id="score" name="score" type="number"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-<div class="row">
-  <label for="slope">Slope</label>
-  <input id="slope" name="slope" type="number"
-    placeholder="Enter slope"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-</div>
+    <div class="row">
+      <label for="slope">Slope</label>
+      <input id="slope" name="slope" type="number"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+    </div>
 
-<div class="row">
-  <button type="button" onclick="updateHandicapEstimate()">Estimate Handicap</button>
-</div>
+    <div class="row">
+      <label for="handicap">Handicap</label>
+      <input id="handicap" name="handicap" type="text" readonly tabindex="-1" placeholder="—"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        style="background-color:#f3f3f3;color:#888;" />
+    </div>
 
-<div class="row">
-  <label for="handicap">Estimated Handicap</label>
-  <input id="handicap" name="handicap" type="text"
-    readonly tabindex="-1" placeholder="—"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-    style="background-color:#f3f3f3; color:#888;" />
-</div>
+    <div class="row">
+      <label for="notes">Notes</label>
+      <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+    </div>
 
-<div class="row">
-  <label for="notes">Notes</label>
-  <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-</div>
+    <button id="saveBtn" type="button">Save Round</button>
+  </form>
 
-<button id="saveBtn" type="button">Save Round</button>
-</form>
-
-<div id="savedRounds"></div>
-
-
-
-  <script src="script.js"></script>
+  <div id="savedRounds"></div>
 </body>
 </html>
