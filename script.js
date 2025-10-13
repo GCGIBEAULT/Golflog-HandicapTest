@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let handicapVal = "";
     if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
-      const scaled = (scoreVal * 113) / slopeVal;
-      handicapVal = scaled.toFixed(1);
+      const scaled = ((scoreVal - 72) / slopeVal) * 113;
+      handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
       document.getElementById("handicap").value = handicapVal;
     }
 
