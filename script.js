@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
+
   if (!savedRounds) {
     console.error("Missing #savedRounds element — check HTML IDs");
     return;
@@ -11,11 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const dateEl = document.getElementById("date");
   const courseEl = document.getElementById("course");
+
   if (dateEl && courseEl) {
     dateEl.addEventListener("keydown", e => {
       const isEnter = e.key === "Enter" || e.code === "Enter" || e.keyCode === 13;
       if (!isEnter || document.activeElement !== dateEl) return;
-      e.preventDefault(); e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
       setTimeout(() => courseEl.focus(), 0);
     });
   }
@@ -30,11 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function displayRounds() {
     savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
     const keys = [];
+
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith("round_")) keys.push(key);
     }
+
     keys.sort().reverse();
+
     for (const key of keys) {
       const round = localStorage.getItem(key) || "";
       const entry = document.createElement("div");
@@ -44,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button class="delete-btn" data-key="${key}" title="Delete this round">×</button>
       `;
       savedRounds.appendChild(entry);
+
       const del = entry.querySelector(".delete-btn");
       if (del) {
         del.addEventListener("click", function () {
@@ -60,13 +67,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveRound() {
     const date = document.getElementById("date")?.value || "";
     const course = document.getElementById("course")?.value || "";
-    const score = document.getElementById("score")?.value || "";
-    const slope = document.getElementById("slope")?.value || "";
-    const handicap = document.getElementById("handicap")?.value || "";
+    const scoreVal = parseFloat(document.getElementById("score")?.value || "");
+    const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
     const notes = document.getElementById("notes")?.value || "";
 
-    const round = `${date} — ${course} | Score: ${score}, Slope: ${slope}, Handicap: ${handicap} | ${notes}`;
+    let handicapVal = "";
+    if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
+      const scaled = (scoreVal * 113) / slopeVal;
+      handicapVal = scaled.toFixed(1);
+      document.getElementById("handicap").value = handicapVal;
+    }
+
+    const handicap = handicapVal || document.getElementById("handicap")?.value || "";
+
+    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Handicap: ${handicap} | ${notes}`;
     const timestamp = new Date().toISOString();
+
     try {
       localStorage.setItem("round_" + timestamp, round);
     } catch (err) {
