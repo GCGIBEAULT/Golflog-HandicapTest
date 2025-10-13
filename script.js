@@ -1,25 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // ✅ Autofill today's date
   document.getElementById("date").value = new Date().toLocaleDateString("en-US");
 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
 
-  if (!savedRounds) {
-    console.error("Missing #savedRounds element — check HTML IDs");
-    return;
-  }
+  if (!savedRounds) return;
 
   const dateEl = document.getElementById("date");
   const courseEl = document.getElementById("course");
 
   if (dateEl && courseEl) {
     dateEl.addEventListener("keydown", e => {
-      const isEnter = e.key === "Enter" || e.code === "Enter" || e.keyCode === 13;
-      if (!isEnter || document.activeElement !== dateEl) return;
-      e.preventDefault();
-      e.stopPropagation();
-      setTimeout(() => courseEl.focus(), 0);
+      if ((e.key === "Enter" || e.code === "Enter" || e.keyCode === 13) && document.activeElement === dateEl) {
+        e.preventDefault();
+        e.stopPropagation();
+        setTimeout(() => courseEl.focus(), 0);
+      }
     });
   }
 
@@ -78,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById("handicap").value = handicapVal;
     }
 
-    const handicap = handicapVal || document.getElementById("handicap")?.value || "";
+    const handicap = handicapVal;
 
     const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Handicap: ${handicap} | ${notes}`;
     const timestamp = new Date().toISOString();
