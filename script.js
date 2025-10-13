@@ -32,7 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     keys.forEach(key => {
       const round = localStorage.getItem(key);
-      const match = round.match(/Score: (\\d+), Slope: (\\d+)/);
+const match = round.match(/Score: (\d+), Slope: (\d+)/);
+
       if (match) {
         const score = parseFloat(match[1]);
         const slope = parseFloat(match[2]);
