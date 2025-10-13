@@ -111,9 +111,4 @@
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
     </div>
 
-    <button id="saveBtn" type="button">Save Round</button>
-  </form>
-
-  <div id="savedRounds"></div>
-</body>
-</html>
+document.getElementById('saveBtn').addEventListener('click', saveRound);
