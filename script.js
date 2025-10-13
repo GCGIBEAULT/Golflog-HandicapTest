@@ -139,3 +139,17 @@ function calculateDifferential() {
   const differential = ((score - courseRating) * 113) / slopeRating;
   document.getElementById('differentialOutput').textContent = differential.toFixed(1);
 }
+function updateHandicap() {
+  const score = parseFloat(document.getElementById('scoreInput').value);
+  const slope = parseFloat(document.getElementById('slopeInput').value);
+  const rounds = parseInt(document.getElementById('roundsInput').value);
+
+  if (isNaN(score) || isNaN(slope) || slope === 0 || isNaN(rounds) || rounds < 1) {
+    document.getElementById('handicapOutput').textContent = '—';
+    return;
+  }
+
+  const rawHandicap = score / slope;
+  const adjustedHandicap = rawHandicap / rounds;
+  document.getElementById('handicapOutput').textContent = adjustedHandicap.toFixed(2);
+}
