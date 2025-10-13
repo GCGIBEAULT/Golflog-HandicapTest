@@ -36,36 +36,42 @@
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
     </div>
 
-    <div class="row">
-      <label for="score">Score</label>
-      <input id="score" name="score" type="number"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+<div class="row">
+  <label for="score">Score</label>
+  <input id="score" name="score" type="number"
+    placeholder="Enter score"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+</div>
 
-    <div class="row">
-      <label for="slope">Slope</label>
-      <input id="slope" name="slope" type="number"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    </div>
+<div class="row">
+  <label for="slope">Slope</label>
+  <input id="slope" name="slope" type="number"
+    placeholder="Enter slope"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+</div>
 
-    <div class="row">
-      <label for="handicap">Handicap</label>
-      <input id="handicap" name="handicap" type="text" readonly tabindex="-1" placeholder="—"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        style="background-color:#f3f3f3;color:#888;" />
-    </div>
+<div class="row">
+  <button type="button" onclick="updateHandicapEstimate()">Estimate Handicap</button>
+</div>
 
-    <div class="row">
-      <label for="notes">Notes</label>
-      <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
-        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    </div>
+<div class="row">
+  <label for="handicap">Estimated Handicap</label>
+  <input id="handicap" name="handicap" type="text"
+    readonly tabindex="-1" placeholder="—"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+    style="background-color:#f3f3f3; color:#888;" />
+</div>
 
-    <button id="saveBtn" type="button">Save Round</button>
-  </form>
+<div class="row">
+  <label for="notes">Notes</label>
+  <textarea id="notes" name="notes" rows="3" placeholder="Add any comments or conditions"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+</div>
 
-  <div id="savedRounds"></div>
+<button id="saveBtn" type="button">Save Round</button>
+</form>
 
+<div id="savedRounds"></div>
 
 
 
