@@ -91,7 +91,8 @@ const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | 
     const form = document.getElementById("roundForm") || document.querySelector("form");
     if (form) try { form.reset(); } catch (e) {}
 
-    const ids = ["date", "course", "score", "slope", "handicap", "notes"];
+    const ids = ["date", "course", "score", "slope", "notes"];
+
     ids.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
