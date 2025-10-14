@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const $id = id => document.getElementById(id) || null;
-    // Enforce mandatory fields: Course Name, Score, and Slope
+  // Enforce mandatory fields: Course Name, Score, and Slope
   const roundForm = $id("roundForm");
   if (roundForm) {
     roundForm.addEventListener("submit", function (e) {
@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
 
 
   // Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
