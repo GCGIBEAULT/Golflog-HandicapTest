@@ -3,24 +3,27 @@ document.addEventListener("DOMContentLoaded", () => {
 function autofillDateIfEmpty() {
   const dateField = document.getElementById("date");
   if (!dateField) return;
+
   if (String(dateField.value || "").trim() === "") {
     const today = new Date();
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const dd = String(today.getDate()).padStart(2, "0");
     const yyyy = today.getFullYear();
     const formatted = `${mm}/${dd}/${yyyy}`;
+
+    // set DOM value and attribute for broader browser support
     dateField.value = formatted;
     dateField.setAttribute("value", formatted);
+
+    // dispatch input events and force a frame repaint so mobile commits the visual
     dateField.dispatchEvent(new Event("input", { bubbles: true }));
     requestAnimationFrame(() => {
       dateField.dispatchEvent(new Event("input", { bubbles: true }));
-      dateField.blur();
+      // blur helps some mobile browsers commit programmatic values
+      try { dateField.blur(); } catch (e) {}
     });
   }
 }
-
-// run it on load
-autofillDateIfEmpty();
 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
