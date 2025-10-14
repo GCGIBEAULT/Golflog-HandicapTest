@@ -14,25 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!savedRounds) return;
 
 function escapeHtml(s) {
-  return String(s)
-    // temporarily protect any <br>, canonicalize variants to <br>
-    .replace(/<br\s*\/?>/gi, "[[BR]]")
-    // escape the rest
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-    // restore the protected <br> tokens
-    .replace(/
-
-\[
-
-\[BR\]
-
-\]
-
-/g, "<br>");
+  return String(s || "")
+    .replace(/\u0026/g, "&amp;")
+    .replace(/\u003C/g, "&lt;")
+    .replace(/\u003E/g, "&gt;")
+    .replace(/\u0022/g, "&quot;")
+    .replace(/\u0027/g, "&#39;");
 }
 ```
 
