@@ -15,23 +15,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function escapeHtml(s) {
     return String(s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+      .replace(/\&/g, "&amp;")
+      .replace(/\</g, "&lt;")
+      .replace(/\>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/\'/g, "&#39;");
   }
 
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
     const handicaps = [];
+
     keys.forEach(key => {
       const round = localStorage.getItem(key);
-const scoreMatch = round.match(/Score: (\d+)/);
-const slopeMatch = round.match(/Slope: (\d+)/);
+      if (!round) return;
 
-if (scoreMatch && slopeMatch) {
-  const score = parseFloat(scoreMatch[1]);
-  const slope = parseFloat(slopeMatch[1]);
-
+      // tolerant extraction: find Score and Slope anywhere in the string
+      const scoreMatch = round.match(/Score:\s*(\d+)/);
+      const slopeMatch = round.match(/Slope:\s*(\d+)/);
+      if (scoreMatch && slopeMatch) {
+        const score = parseFloat(scoreMatch[1]);
+        const slope = parseFloat(slopeMatch[1]);
         if (!isNaN(score) && !isNaN(slope) && slope !== 0) {
           const scaled = ((score - 72) / slope) * 113;
           const h = Math.max(0, Math.min(scaled, 36));
@@ -39,105 +43,84 @@ if (scoreMatch && slopeMatch) {
         }
       }
     });
+
     const handicapField = document.getElementById("handicap");
-    if (handicapField) {
-      if (handicaps.length > 0) {
-        const avg = handicaps.reduce((a, b) => a + b, 0) / handicaps.length;
-        handicapField.value = avg.toFixed(1);
-      } else {
-        handicapField.value = "—";
-      }
-    }
-  }
+    if (!handicapField) return;
 
-  function displayRounds() {
-    savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
-    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort().reverse();
-    keys.forEach(key => {
-      const round = localStorage.getItem(key) || "";
-      const entry = document.createElement("div");
-      entry.className = "round-entry";
-      entry.innerHTML = `
-        <span class="round-text">${escapeHtml(round)}</span>
-        <button class="delete-btn" data-key="${key}" title="Delete this round">×</button>
-      `;
-      savedRounds.appendChild(entry);
-      const del = entry.querySelector(".delete-btn");
-      if (del) {
-        del.addEventListener("click", function () {
-          const keyToDelete = this.getAttribute("data-key");
-          if (keyToDelete) {
-            localStorage.removeItem(keyToDelete);
-            displayRounds();
-            calculateCumulativeHandicap();
-          }
-        });
-      }
-    });
-    calculateCumulativeHandicap();
-  }
-
-  function saveRound() {
-    const date = document.getElementById("date")?.value || "";
-    const course = document.getElementById("course")?.value || "";
-    const scoreVal = parseFloat(document.getElementById("score")?.value || "");
-    const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
-    const yardage = document.getElementById("yardage")?.value || "";
-    const notes = document.getElementById("notes")?.value || "";
-    // 🔴 Mandatory field check
-if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
-  alert("Please enter Course, Score, and Slope before saving.");
-  return;
-}
-
-
-    // 🔴 Mandatory field check
-    if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
-      alert("Please enter Course, Score, and Slope before saving.");
+    if (handicaps.length === 0) {
+      handicapField.value = "—";
       return;
     }
 
-    let handicapVal = "";
-    if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
-      const scaled = ((scoreVal - 72) / slopeVal) * 113;
-      handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
-    }
-
-    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage} | ${notes}`;
-
-    const timestamp = new Date().toISOString();
-    try {
-      localStorage.setItem("round_" + timestamp, round);
-    } catch (err) {
-      console.warn("localStorage write failed", err);
-    }
-
-    displayRounds();
-
-    const form = document.getElementById("roundForm") || document.querySelector("form");
-    if (form) try { form.reset(); } catch (e) {}
-
-    // Refill date after reset
-    const dateField = document.getElementById("date");
-    if (dateField) {
-      try {
-        const today = new Date();
-        const mm = String(today.getMonth() + 1).padStart(2, "0");
-        const dd = String(today.getDate()).padStart(2, "0");
-        const yyyy = today.getFullYear();
-        dateField.value = `${mm}/${dd}/${yyyy}`;
-        dateField.focus();
-        if (dateField.setSelectionRange) dateField.setSelectionRange(0, 0);
-      } catch (e) {}
-    }
+    // take mean of most recent 20 rounds (or fewer if not available)
+    const recent = handicaps.slice(-20);
+    const sum = recent.reduce((a, b) => a + b, 0);
+    const avg = sum / recent.length;
+    // round to one decimal place
+    handicapField.value = (Math.round(avg * 10) / 10).toFixed(1);
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      saveRound();
+  function displayRounds() {
+    savedRounds.innerHTML = "";
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
+    keys.forEach(key => {
+      const value = localStorage.getItem(key);
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span>
+                      <button class="delete-btn" data-key="${escapeHtml(key)}">Delete</button>`;
+      savedRounds.appendChild(li);
+    });
+
+    // attach delete handlers
+    savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const k = btn.getAttribute("data-key");
+        if (k) {
+          localStorage.removeItem(k);
+          displayRounds();
+          calculateCumulativeHandicap();
+        }
+      });
     });
   }
 
+  function clearFormInputs(form) {
+    if (!form) return;
+    Array.from(form.elements).forEach(el => {
+      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
+        el.value = "";
+      } else if (el.tagName === "SELECT") {
+        el.selectedIndex = 0;
+      }
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      const date = document.getElementById("date")?.value || "";
+      const score = document.getElementById("score")?.value || "";
+      const slope = document.getElementById("slope")?.value || "";
+      const yardage = document.getElementById("yardage")?.value || "";
+      const notes = document.getElementById("notes")?.value || "";
+
+      // required fields guard (mandatory entries)
+      if (!date || !score || !slope) {
+        alert("Please fill Date, Score and Slope before saving.");
+        return;
+      }
+
+      const key = `round_${Date.now()}`;
+      // store a stable, parseable string
+      const stored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
+      localStorage.setItem(key, stored);
+
+      displayRounds();
+      calculateCumulativeHandicap();
+      clearFormInputs(document.getElementById("roundForm"));
+    });
+  }
+
+  // initialize display and handicap on load
   displayRounds();
+  calculateCumulativeHandicap();
 });
