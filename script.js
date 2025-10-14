@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function clearFormInputs(form) {
     if (!form) return;
     Array.from(form.elements).forEach(el => {
-      // keep the handicap field intact by id and by name (defensive)
+      // keep the handicap field intact
       if (el.id === "handicap" || el.name === "handicap") return;
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
         el.value = "";
@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Save round, recalc handicap, then append the current handicap into the saved string
   function saveRoundAndRefreshUI() {
     const date = document.getElementById("date")?.value || "";
     const score = document.getElementById("score")?.value || "";
@@ -111,21 +112,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const key = `round_${Date.now()}`;
-    const stored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
-    localStorage.setItem(key, stored);
+    const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
+
+    // store without handicap first so calculateCumulativeHandicap includes this new round
+    localStorage.setItem(key, baseStored);
 
     // update UI immediately
     displayRounds();
     calculateCumulativeHandicap();
 
-    // clear inputs but protect handicap (defensive)
-    clearFormInputs(document.getElementById("roundForm"));
-
-    // mobile race conditions: ensure handicap is recalculated after any input-clear/blur events
-    // a tiny delay makes the result stable on phones where the virtual keyboard or focus can interfere
+    // read the freshly calculated handicap and append it to the saved item
+    // small delay ensures handicapField updated on mobile before we read it
     setTimeout(() => {
-      calculateCumulativeHandicap();
-    }, 60);
+      const handicapField = document.getElementById("handicap");
+      const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+      const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
+      localStorage.setItem(key, storedWithHandicap);
+
+      // re-render so the saved-round shows the handicap text immediately
+      displayRounds();
+
+      // clear inputs but protect handicap
+      clearFormInputs(document.getElementById("roundForm"));
+
+      // defensive re-check for mobile race conditions
+      setTimeout(() => {
+        calculateCumulativeHandicap();
+      }, 60);
+    }, 40);
   }
 
   if (saveBtn) {
@@ -136,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
   displayRounds();
   calculateCumulativeHandicap();
 
-  // also recalc when visibility changes (returning to tab/mobile view)
+  // recompute when returning to the tab
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) calculateCumulativeHandicap();
   });
