@@ -16,11 +16,12 @@ document.addEventListener("DOMContentLoaded", () => {
 function escapeHtml(s) {
   return String(s)
     .replace(/&/g, "&amp;")
-    .replace(/</g, (m, i, str) => str.slice(i, i + 4) === "<br>" ? "<br>" : "&lt;")
-    .replace(/>/g, (m, i, str) => str.slice(i - 3, i + 1) === "<br>" ? ">" : "&gt;")
+    .replace(/</g, (match, offset, str) => str.slice(offset, offset + 4) === "<br>" ? "<br>" : "&lt;")
+    .replace(/>/g, (match, offset, str) => str.slice(offset - 3, offset + 1) === "<br>" ? ">" : "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
 
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
