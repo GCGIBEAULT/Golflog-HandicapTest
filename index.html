@@ -95,9 +95,11 @@
       <input id="yardage" name="yardage" type="number" autocomplete="off" />
     </div>
     <div class="row">
-  <label for="handicap">Handicap</label>
-  <input id="handicap" name="handicap" type="text" readonly autocomplete="off" />
-</div>
+      <label for="handicap">Handicap</label>
+      <input id="handicap" name="handicap" type="text" readonly tabindex="-1" placeholder="—"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        style="background-color:#f3f3f3;color:#888;" />
+    </div>
     <div class="row">
       <label for="notes">Notes</label>
       <textarea id="notes" name="notes" placeholder="Add any comments or conditions"></textarea>
