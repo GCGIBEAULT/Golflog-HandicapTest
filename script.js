@@ -1,23 +1,30 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Auto-fill today's date
-  const dateField = document.getElementById("date");
-  if (dateField && !dateField.value) {
+  // Defensive helper to find an element and return null if not present
+  function $id(id) { return document.getElementById(id) || null; }
+
+  // Auto-fill today's date in mm/dd/yyyy if the date field exists and is empty
+  (function autofillDate() {
+    const dateField = $id("date");
+    if (!dateField) return;
+    // If value already present, do nothing
+    if (String(dateField.value || "").trim() !== "") return;
     const today = new Date();
     const mm = String(today.getMonth() + 1).padStart(2, "0");
     const dd = String(today.getDate()).padStart(2, "0");
     const yyyy = today.getFullYear();
     dateField.value = `${mm}/${dd}/${yyyy}`;
-  }
+  })();
 
-  const saveBtn = document.getElementById("saveBtn");
-  const savedRounds = document.getElementById("savedRounds");
+  const saveBtn = $id("saveBtn");
+  const savedRounds = $id("savedRounds");
+
   if (!savedRounds) {
     console.error("savedRounds element missing");
     return;
   }
 
   function escapeHtml(s) {
-    return String(s)
+    return String(s || "")
       .replace(/\&/g, "&amp;")
       .replace(/\</g, "&lt;")
       .replace(/\>/g, "&gt;")
@@ -47,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    const handicapField = document.getElementById("handicap");
+    const handicapField = $id("handicap");
     if (!handicapField) return;
 
     if (handicaps.length === 0) {
@@ -91,20 +98,22 @@ document.addEventListener("DOMContentLoaded", () => {
       // keep the handicap field intact
       if (el.id === "handicap" || el.name === "handicap") return;
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-        el.value = "";
+        // avoid clearing date auto-fill if the user expects it to remain filled
+        if (el.id === "date") el.value = ""; // keep behavior consistent with previous UX; adjust if you want to preserve date
+        else el.value = "";
       } else if (el.tagName === "SELECT") {
         el.selectedIndex = 0;
       }
     });
   }
 
-  // Save round, recalc handicap, then append the current handicap into the saved string
+  // Save round, recalc handicap, append current handicap into the saved string
   function saveRoundAndRefreshUI() {
-    const date = document.getElementById("date")?.value || "";
-    const score = document.getElementById("score")?.value || "";
-    const slope = document.getElementById("slope")?.value || "";
-    const yardage = document.getElementById("yardage")?.value || "";
-    const notes = document.getElementById("notes")?.value || "";
+    const date = $id("date")?.value || "";
+    const score = $id("score")?.value || "";
+    const slope = $id("slope")?.value || "";
+    const yardage = $id("yardage")?.value || "";
+    const notes = $id("notes")?.value || "";
 
     if (!date || !score || !slope) {
       alert("Please fill Date, Score and Slope before saving.");
@@ -122,9 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
     calculateCumulativeHandicap();
 
     // read the freshly calculated handicap and append it to the saved item
-    // small delay ensures handicapField updated on mobile before we read it
+    // tiny delay to avoid mobile focus/keyboard race conditions
     setTimeout(() => {
-      const handicapField = document.getElementById("handicap");
+      const handicapField = $id("handicap");
       const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
       const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
       localStorage.setItem(key, storedWithHandicap);
@@ -133,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       displayRounds();
 
       // clear inputs but protect handicap
-      clearFormInputs(document.getElementById("roundForm"));
+      clearFormInputs($id("roundForm"));
 
       // defensive re-check for mobile race conditions
       setTimeout(() => {
