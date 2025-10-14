@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   autofillDateIfEmpty();
 
-  const saveBtn = $id("saveBtn");
+  const saveBtn = $id("saveBtn"); // ✅ This line was missing
   const savedRounds = $id("savedRounds");
   if (!savedRounds) {
     console.error("savedRounds element missing");
@@ -135,7 +135,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 40);
   }
 
-  if (saveBtn) saveBtn.addEventListener("click", saveRoundAndRefreshUI);
+  if (saveBtn) {
+    saveBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      saveRoundAndRefreshUI();
+    });
+  }
 
   displayRounds();
   calculateCumulativeHandicap();
