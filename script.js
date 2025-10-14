@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const notes = $id("notes")?.value || "";
 
     if (!isValidRound(course, score, slope)) {
-      alert("Course Name, Score, and Slope are required.");
+      alert("Please fill Course Name, Score, and Slope before saving.");
       return;
     }
 
