@@ -1,5 +1,29 @@
 document.addEventListener("DOMContentLoaded", () => {
   const $id = id => document.getElementById(id) || null;
+    // Enforce mandatory fields: Course Name, Score, and Slope
+  const roundForm = $id("roundForm");
+  if (roundForm) {
+    roundForm.addEventListener("submit", function (e) {
+      const course = $id("course");
+      const score = $id("score");
+      const slope = $id("slope");
+
+      if (!course?.value.trim() || !score?.value.trim() || !slope?.value.trim()) {
+        e.preventDefault();
+        [course, score, slope].forEach(field => {
+          if (!field?.value.trim()) {
+            field.style.borderColor = "#c00";
+            field.style.backgroundColor = "#fee";
+          } else {
+            field.style.borderColor = "";
+            field.style.backgroundColor = "";
+          }
+        });
+        alert("Course Name, Score, and Slope are required.");
+      }
+    });
+  }
+
 
   // Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
   function autofillDateIfEmpty() {
