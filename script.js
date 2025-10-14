@@ -71,16 +71,27 @@ document.addEventListener("DOMContentLoaded", () => {
     handicapField.value = (Math.round(avg * 10) / 10).toFixed(1);
   }
 
-  function displayRounds() {
-    savedRounds.innerHTML = "";
-    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
-    keys.forEach(key => {
-      const value = localStorage.getItem(key);
-      const li = document.createElement("li");
-      li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span>
-                      <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">&times;</button>`;
-      savedRounds.appendChild(li);
-    });
+function displayRounds() {
+  const container = document.getElementById("roundsContainer");
+  if (!container) return;
+
+  container.innerHTML = ""; // clear previous
+
+  const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort().reverse();
+  keys.forEach(key => {
+    const data = localStorage.getItem(key);
+    const div = document.createElement("div");
+    div.className = "round-entry";
+
+    // Extract Course Name
+    const courseMatch = data.match(/Course:\s*([^,]+)/i);
+    const courseName = courseMatch ? courseMatch[1].trim() : "Unknown Course";
+
+    div.textContent = `🏌️‍♂️ ${courseName} — ${data}`;
+    container.appendChild(div);
+  });
+}
+
 
     savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", () => {
