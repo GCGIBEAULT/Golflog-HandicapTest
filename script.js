@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const $id = id => document.getElementById(id) || null;
+
   // Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
   function autofillDateIfEmpty() {
     const dateField = $id("date");
@@ -8,25 +10,39 @@ document.addEventListener("DOMContentLoaded", () => {
       const mm = String(today.getMonth() + 1).padStart(2, "0");
       const dd = String(today.getDate()).padStart(2, "0");
       const yyyy = today.getFullYear();
-      dateField.value = `${mm}/${dd}/${yyyy}`;
-      // force some mobile browsers to visually commit the programmatic value
+      const formatted = `${mm}/${dd}/${yyyy}`;
+      dateField.value = formatted;
+      dateField.setAttribute("value", formatted);
       dateField.dispatchEvent(new Event("input", { bubbles: true }));
-      dateField.blur();
+      requestAnimationFrame(() => {
+        dateField.dispatchEvent(new Event("input", { bubbles: true }));
+        try { dateField.blur(); } catch (e) {}
+      });
     }
   }
 
   // Run autofill on load
   autofillDateIfEmpty();
 
+  const saveBtn = $id("saveBtn");
+  const savedRounds = $id("savedRounds");
+  if (!savedRounds) {
+    console.error("savedRounds element missing");
+    return;
+  }
 
-  const saveBtn = document.getElementById("saveBtn");
-  const savedRounds = document.getElementById("savedRounds");
-  if (!savedRounds) return;
+  // Normalize and escape helpers
+  function normalizeBreaksForDisplay(s) {
+    return String(s || "")
+      .replace(/&lt;br&gt;/gi, "<br>")
+      .replace(/\\u003E/gi, ">")
+      .replace(/(^|[^<])br>/gi, "<br>")
+      .replace(/<br\s*\/?>/gi, "<br>");
+  }
 
-  // Escape everything except <br> by protecting <br> temporarily
   function escapeHtml(s) {
     return String(s || "")
-      .replace(/<br\s*\/?>/gi, "[[BR]]") // protect any <br> variants
+      .replace(/<br\s*\/?>/gi, "[[BR]]")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
@@ -40,27 +56,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 \]
 
-/g, "<br>"); // restore canonical <br>
+/g, "<br>");
   }
 
-  // When reading stored strings we normalize any stray/escaped br tokens into canonical <br>
-  function normalizeBreaksForDisplay(s) {
-    return String(s || "")
-      .replace(/&lt;br&gt;/gi, "<br>")
-      .replace(/\\u003E/gi, ">")
-      .replace(/(^|[^<])br>/gi, "<br>")
-      .replace(/<br\s*\/?>/gi, "<br>");
-  }
-
+  // Calculate handicap from stored rounds
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
     const handicaps = [];
     keys.forEach(key => {
       const round = localStorage.getItem(key) || "";
-      const match = round.match(/Score: (\d+), Slope: (\d+)/);
-      if (match) {
-        const score = parseFloat(match[1]);
-        const slope = parseFloat(match[2]);
+      const scoreMatch = round.match(/Score:\s*(\d+)/);
+      const slopeMatch = round.match(/Slope:\s*(\d+)/);
+      if (scoreMatch && slopeMatch) {
+        const score = parseFloat(scoreMatch[1]);
+        const slope = parseFloat(slopeMatch[1]);
         if (!isNaN(score) && !isNaN(slope) && slope !== 0) {
           const scaled = ((score - 72) / slope) * 113;
           const h = Math.max(0, Math.min(scaled, 36));
@@ -68,17 +77,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
-    const handicapField = document.getElementById("handicap");
-    if (handicapField) {
-      if (handicaps.length > 0) {
-        const avg = handicaps.reduce((a, b) => a + b, 0) / handicaps.length;
-        handicapField.value = avg.toFixed(1);
-      } else {
-        handicapField.value = "—";
-      }
+    const handicapField = $id("handicap");
+    if (!handicapField) return;
+    if (handicaps.length === 0) {
+      handicapField.value = "—";
+      return;
     }
+    const recent = handicaps.slice(-20);
+    const sum = recent.reduce((a, b) => a + b, 0);
+    const avg = sum / recent.length;
+    handicapField.value = (Math.round(avg * 10) / 10).toFixed(1);
   }
 
+  // Render saved rounds (normalize stored variations, then escape except <br>)
   function displayRounds() {
     savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort().reverse();
@@ -106,74 +117,79 @@ document.addEventListener("DOMContentLoaded", () => {
     calculateCumulativeHandicap();
   }
 
-  function saveRound() {
-    const date = document.getElementById("date")?.value || "";
-    const course = document.getElementById("course")?.value || "";
-    const scoreVal = parseFloat(document.getElementById("score")?.value || "");
-    const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
-    const yardage = document.getElementById("yardage")?.value || "";
-    const notes = document.getElementById("notes")?.value || "";
+  // Clear inputs but preserve date and handicap
+  function clearFormInputs(form) {
+    if (!form) return;
+    Array.from(form.elements).forEach(el => {
+      if (!el) return;
+      const tid = (el.id || "").toLowerCase();
+      if (tid === "handicap" || tid === "date") return;
+      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") el.value = "";
+      else if (el.tagName === "SELECT") el.selectedIndex = 0;
+    });
+  }
 
-    // Mandatory field check
-    if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
-      alert("Please enter Course, Score, and Slope before saving.");
+  // Save and refresh UI, keeping date visible and appending handicap to stored string
+  function saveRoundAndRefreshUI() {
+    autofillDateIfEmpty(); // ensure date present before validating
+
+    const date = $id("date")?.value || "";
+    const course = $id("course")?.value || "";
+    const score = $id("score")?.value || "";
+    const slope = $id("slope")?.value || "";
+    const yardage = $id("yardage")?.value || "";
+    const notes = $id("notes")?.value || "";
+
+    // Mandatory field check (require Date, Score, Slope, Course)
+    if (!date || !course || score.trim() === "" || slope.trim() === "") {
+      alert("Please fill Date, Course, Score and Slope before saving.");
       return;
     }
 
-    let handicapVal = "";
-    if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
-      const scaled = ((scoreVal - 72) / slopeVal) * 113;
-      handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
-    }
-    if (document.getElementById("handicap")) {
-      document.getElementById("handicap").value = handicapVal;
-    }
-
-    const round = [
-      `${date} — ${course}`,
-      `Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage}`,
-      `Handicap: ${handicapVal}`,
-      notes ? `Notes: ${notes}` : ""
-    ].filter(Boolean).join("<br>");
-
-    const timestamp = new Date().toISOString();
+    const key = `round_${Date.now()}`;
+    const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
     try {
-      localStorage.setItem("round_" + timestamp, round);
+      localStorage.setItem(key, baseStored);
     } catch (err) {
       console.warn("localStorage write failed", err);
     }
 
+    // Immediate UI update
     displayRounds();
+    calculateCumulativeHandicap();
 
-    const form = document.getElementById("roundForm") || document.querySelector("form");
-    if (form) {
-      try { form.reset(); } catch (e) {}
-    }
-
-    // Refill date after reset so mobile doesn't lose it
-    const dateField = document.getElementById("date");
-    if (dateField) {
-      try {
-        const today = new Date();
-        const mm = String(today.getMonth() + 1).padStart(2, "0");
-        const dd = String(today.getDate()).padStart(2, "0");
-        const yyyy = today.getFullYear();
-        const formatted = `${mm}/${dd}/${yyyy}`;
-        dateField.value = formatted;
-        dateField.setAttribute("value", formatted);
-        dateField.focus();
-        if (dateField.setSelectionRange) dateField.setSelectionRange(0, 0);
-      } catch (e) {}
-    }
+    // Append handicap into stored string after small delay to allow recalculation
+    setTimeout(() => {
+      const handicapField = $id("handicap");
+      const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+      const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
+      localStorage.setItem(key, storedWithHandicap);
+      displayRounds();
+      // Clear other inputs but keep date and handicap visible
+      clearFormInputs($id("roundForm"));
+      // Ensure date autofill remains visible on mobile
+      autofillDateIfEmpty();
+      const df = $id("date");
+      if (df) { df.dispatchEvent(new Event("input", { bubbles: true })); df.blur(); }
+      setTimeout(() => calculateCumulativeHandicap(), 40);
+    }, 40);
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      saveRound();
-    });
-  }
+  if (saveBtn) saveBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveRoundAndRefreshUI();
+  });
 
+  // initial render
   displayRounds();
+  calculateCumulativeHandicap();
+
+  // when returning to tab, ensure date and UI are up-to-date
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      autofillDateIfEmpty();
+      calculateCumulativeHandicap();
+      displayRounds();
+    }
+  });
 });
-```
