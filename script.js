@@ -15,12 +15,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function escapeHtml(s) {
   return String(s)
-    .replace(/&(?!br;)/g, "&amp;")
-    .replace(/</g, (match, offset, str) => str.slice(offset, offset + 4) === "<br>" ? "<br>" : "&lt;")
-    .replace(/>/g, (match, offset, str) => str.slice(offset - 3, offset + 1) === "<br>" ? ">" : "&gt;")
+    // temporarily protect any <br>, canonicalize variants to <br>
+    .replace(/<br\s*\/?>/gi, "[[BR]]")
+    // escape the rest
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/'/g, "&#39;")
+    // restore the protected <br> tokens
+    .replace(/
+
+\[
+
+\[BR\]
+
+\]
+
+/g, "<br>");
 }
+```
 
 
 
