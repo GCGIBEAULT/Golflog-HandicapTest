@@ -1,6 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
   const $id = id => document.getElementById(id) || null;
 
+  // Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
+  function autofillDateIfEmpty() {
+    const dateField = $id("date");
+    if (!dateField) return;
+    if (String(dateField.value || "").trim() === "") {
+      const today = new Date();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      const yyyy = today.getFullYear();
+      dateField.value = `${mm}/${dd}/${yyyy}`;
+      // force some mobile browsers to visually commit the programmatic value
+      dateField.dispatchEvent(new Event("input", { bubbles: true }));
+      dateField.blur();
+    }
+  }
+
+  // Run autofill on load
+  autofillDateIfEmpty();
+
   const saveBtn = $id("saveBtn");
   const savedRounds = $id("savedRounds");
   if (!savedRounds) {
@@ -10,22 +29,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function escapeHtml(s) {
     return String(s || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+      .replace(/\&/g, "&amp;")
+      .replace(/\</g, "&lt;")
+      .replace(/\>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/\'/g, "&#39;");
   }
 
-  function isValidRound(course, score, slope) {
-    return String(course).trim() !== "" &&
-           String(score).trim() !== "" &&
-           String(slope).trim() !== "";
-  }
-
+  // Corrected regex uses \d+ (not escaped unicode sequence)
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
     const handicaps = [];
+
     keys.forEach(key => {
       const round = localStorage.getItem(key);
       if (!round) return;
@@ -41,12 +56,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
     });
+
     const handicapField = $id("handicap");
     if (!handicapField) return;
+
     if (handicaps.length === 0) {
       handicapField.value = "—";
       return;
     }
+
     const recent = handicaps.slice(-20);
     const sum = recent.reduce((a, b) => a + b, 0);
     const avg = sum / recent.length;
@@ -57,10 +75,10 @@ document.addEventListener("DOMContentLoaded", () => {
     savedRounds.innerHTML = "";
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
     keys.forEach(key => {
-      const value = localStorage.getItem(key) || "";
+      const value = localStorage.getItem(key);
       const li = document.createElement("li");
-      const safe = escapeHtml(value).replace(/&lt;br&gt;/g, "<br>");
-      li.innerHTML = `<span class="round-text">${safe}</span> <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">×</button>`;
+      li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span>
+                      <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">&times;</button>`;
       savedRounds.appendChild(li);
     });
 
@@ -76,78 +94,75 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Clear inputs but preserve date and handicap
   function clearFormInputs(form) {
     if (!form) return;
     Array.from(form.elements).forEach(el => {
+      if (!el) return;
       const tid = (el.id || "").toLowerCase();
-      if (tid === "handicap") return;
+      if (tid === "handicap" || tid === "date") return;
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") el.value = "";
       else if (el.tagName === "SELECT") el.selectedIndex = 0;
     });
   }
 
+  // Save, update UI immediately, append handicap to saved string, keep date visible
   function saveRoundAndRefreshUI() {
+    autofillDateIfEmpty(); // ensure date present before validating
     const date = $id("date")?.value || "";
-    const course = $id("course")?.value || "";
     const score = $id("score")?.value || "";
     const slope = $id("slope")?.value || "";
     const yardage = $id("yardage")?.value || "";
     const notes = $id("notes")?.value || "";
 
-    if (!isValidRound(course, score, slope)) {
-      alert("Please fill Course Name, Score, and Slope before saving.");
+    if (!date || !score || !slope) {
+      alert("Please fill Date, Score and Slope before saving.");
       return;
     }
 
     const key = `round_${Date.now()}`;
+    const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
 
-    const handicapField = $id("handicap");
-    let currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
-
-    if ((!currentHandicap || currentHandicap === "—") && score && slope) {
-      const s = parseFloat(score);
-      const sl = parseFloat(slope);
-      if (!isNaN(s) && !isNaN(sl) && sl !== 0) {
-        const scaled = ((s - 72) / sl) * 113;
-        const h = Math.max(0, Math.min(scaled, 36));
-        currentHandicap = (Math.round(h * 10) / 10).toFixed(1);
-      }
-    }
-
-    const baseStored = [
-      date ? `${date}. Course: ${course}` : `Course: ${course}`,
-      `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
-      notes ? `Notes: ${notes}` : null
-    ].filter(Boolean).join("<br>");
-
+    // store round so handicap calc includes it
     localStorage.setItem(key, baseStored);
+
+    // immediate UI update
     displayRounds();
     calculateCumulativeHandicap();
 
+    // append current handicap into stored string after a tiny delay to avoid mobile focus races
     setTimeout(() => {
+      const handicapField = $id("handicap");
+      const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+      const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
+      localStorage.setItem(key, storedWithHandicap);
+
+      // re-render so the saved-round shows the handicap immediately
+      displayRounds();
+
+      // clear other inputs but keep date and handicap visible
       clearFormInputs($id("roundForm"));
+
+      // ensure date autofill remains visible and force input event to update UI on mobile
+      autofillDateIfEmpty();
       const df = $id("date");
-      if (df) {
-        df.dispatchEvent(new Event("input", { bubbles: true }));
-        df.blur();
-      }
+      if (df) { df.dispatchEvent(new Event("input", { bubbles: true })); df.blur(); }
+
+      // final defensive recalculation
       setTimeout(() => calculateCumulativeHandicap(), 40);
     }, 40);
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      saveRoundAndRefreshUI();
-    });
-  }
+  if (saveBtn) saveBtn.addEventListener("click", saveRoundAndRefreshUI);
 
+  // initial render
   displayRounds();
   calculateCumulativeHandicap();
 
+  // when returning to tab, ensure date and UI are up-to-date
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
+      autofillDateIfEmpty();
       calculateCumulativeHandicap();
       displayRounds();
     }
