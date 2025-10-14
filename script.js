@@ -15,12 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function escapeHtml(s) {
   return String(s)
-    .replace(/&/g, "&amp;")
+    .replace(/&(?!br;)/g, "&amp;")
     .replace(/</g, (match, offset, str) => str.slice(offset, offset + 4) === "<br>" ? "<br>" : "&lt;")
     .replace(/>/g, (match, offset, str) => str.slice(offset - 3, offset + 1) === "<br>" ? ">" : "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 }
+
 
 
   function calculateCumulativeHandicap() {
