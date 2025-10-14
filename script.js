@@ -139,10 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const yardage = $id("yardage")?.value || "";
     const notes = $id("notes")?.value || "";
 
-    if (!date || !score || !slope) {
-      alert("Please fill Date, Score and Slope before saving.");
-      return;
-    }
+   if (!course || !score || !slope) {
+  alert("Course Name, Score, and Slope are required.");
+  return;
+}
+
 
     const key = `round_${Date.now()}`;
     const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
