@@ -25,10 +25,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const handicaps = [];
     keys.forEach(key => {
       const round = localStorage.getItem(key);
-      const match = round.match(/Score: (\d+), Slope: (\d+)/);
-      if (match) {
-        const score = parseFloat(match[1]);
-        const slope = parseFloat(match[2]);
+const scoreMatch = round.match(/Score: (\\d+)/);
+const slopeMatch = round.match(/Slope: (\\d+)/);
+if (scoreMatch && slopeMatch) {
+  const score = parseFloat(scoreMatch[1]);
+  const slope = parseFloat(slopeMatch[1]);
+
         if (!isNaN(score) && !isNaN(slope) && slope !== 0) {
           const scaled = ((score - 72) / slope) * 113;
           const h = Math.max(0, Math.min(scaled, 36));
