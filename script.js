@@ -13,12 +13,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const savedRounds = document.getElementById("savedRounds");
   if (!savedRounds) return;
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, (m, i, str) => str.slice(i, i + 4) === "<br>" ? "<br>" : "&lt;")
+    .replace(/>/g, (m, i, str) => str.slice(i - 3, i + 1) === "<br>" ? ">" : "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
