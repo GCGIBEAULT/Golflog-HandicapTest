@@ -117,7 +117,8 @@ document.addEventListener("DOMContentLoaded", () => {
       `${date}. Course: ${course}`,
       `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
       notes ? `Notes: ${notes}` : null
-    ].filter(Boolean).join("\n");
+   ].filter(Boolean).join("<br>");
+
 
     localStorage.setItem(key, baseStored);
     displayRounds();
