@@ -54,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!validateRequiredCourseScoreSlope()) {
         e.preventDefault();
         e.stopPropagation();
+      } else {
+        // allow submit to proceed if you still use native submit elsewhere
       }
     });
   }
@@ -68,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const dd = String(today.getDate()).padStart(2, "0");
       const yyyy = String(today.getFullYear());
       dateField.value = `${mm}/${dd}/${yyyy}`;
-      // trigger input events so mobile browsers update UI
       dateField.dispatchEvent(new Event("input", { bubbles: true }));
       dateField.blur();
     }
@@ -77,13 +78,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // ---------- Core save function (keeps your app flow) ----------
   // This function assumes displayRounds(), calculateCumulativeHandicap(), clearFormInputs() exist elsewhere.
   function saveRoundAndRefreshUI() {
-    // Ensure date autofill happens before validation if you want date optional
     autofillDateIfEmpty();
 
-    // Validate required fields centrally (defensive)
+    // Defensive validation
     if (!validateRequiredCourseScoreSlope()) return;
 
-    // Collect values (trimmed)
     const date = $id("date")?.value?.trim() || "";
     const course = $id("course")?.value?.trim() || "";
     const score = $id("score")?.value?.trim() || "";
@@ -91,7 +90,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const yardage = $id("yardage")?.value?.trim() || "";
     const notes = $id("notes")?.value?.trim() || "";
 
-    // Persist base round, update UI, then append handicap once calculated
     const key = `round_${Date.now()}`;
     const baseStored = `Date: ${date}, Course: ${course}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
     try {
@@ -100,11 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("localStorage set error:", err);
     }
 
-    // Update UI and handicap
     if (typeof displayRounds === "function") displayRounds();
     if (typeof calculateCumulativeHandicap === "function") calculateCumulativeHandicap();
 
-    // After a short delay append current handicap value and then clear form
     setTimeout(() => {
       const handicapField = $id("handicap");
       const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
@@ -116,23 +112,19 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (typeof displayRounds === "function") displayRounds();
 
-      // Clear the form inputs using your existing helper if present; otherwise clear manually
       if (typeof clearFormInputs === "function") {
         clearFormInputs($id("roundForm"));
       } else if (roundForm) {
         roundForm.reset();
-        // ensure date autofill remains consistent for UX
         autofillDateIfEmpty();
       }
 
-      // Force UI updates that mobile browsers sometimes skip
       const df = $id("date");
       if (df) {
         df.dispatchEvent(new Event("input", { bubbles: true }));
         df.blur();
       }
 
-      // Recalculate once more after UI settles
       setTimeout(() => {
         if (typeof calculateCumulativeHandicap === "function") calculateCumulativeHandicap();
       }, 40);
@@ -145,7 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveBtn.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      // Validate first, then save
       if (!validateRequiredCourseScoreSlope()) return;
       saveRoundAndRefreshUI();
     });
@@ -165,12 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const el = $id(id);
     if (!el) return;
     el.addEventListener("input", () => {
-      // remove visual error when user types
       el.style.borderColor = "";
       el.style.backgroundColor = "";
     });
     el.addEventListener("blur", () => {
-      // trim value on blur for consistent validation
       el.value = (el.value || "").trim();
     });
   });
