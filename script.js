@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     keys.forEach(key => {
       const round = localStorage.getItem(key);
+      console.log("round raw:", JSON.stringify(round));
       if (!round) return;
 
       // tolerant extraction: find Score and Slope anywhere in the string
@@ -73,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // attach delete handlers
     savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
-      btn.addEventListener("click", e => {
+      btn.addEventListener("click", () => {
         const k = btn.getAttribute("data-key");
         if (k) {
           localStorage.removeItem(k);
