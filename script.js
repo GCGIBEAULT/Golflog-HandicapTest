@@ -81,6 +81,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
     const yardage = document.getElementById("yardage")?.value || "";
     const notes = document.getElementById("notes")?.value || "";
+    // 🔴 Mandatory field check
+if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
+  alert("Please enter Course, Score, and Slope before saving.");
+  return;
+}
+
 
     // 🔴 Mandatory field check
     if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
