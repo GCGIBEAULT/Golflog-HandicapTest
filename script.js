@@ -1,23 +1,26 @@
+update 2025
 document.addEventListener("DOMContentLoaded", () => {
-  // Defensive helper to find an element and return null if not present
-  function $id(id) { return document.getElementById(id) || null; }
+  // helper
+  const $id = id => document.getElementById(id) || null;
 
-  // Auto-fill today's date in mm/dd/yyyy if the date field exists and is empty
-  (function autofillDate() {
+  // Autofill today's date in mm/dd/yyyy if empty
+  function autofillDateIfEmpty() {
     const dateField = $id("date");
     if (!dateField) return;
-    // If value already present, do nothing
-    if (String(dateField.value || "").trim() !== "") return;
-    const today = new Date();
-    const mm = String(today.getMonth() + 1).padStart(2, "0");
-    const dd = String(today.getDate()).padStart(2, "0");
-    const yyyy = today.getFullYear();
-    dateField.value = `${mm}/${dd}/${yyyy}`;
-  })();
+    if (String(dateField.value || "").trim() === "") {
+      const today = new Date();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+      const yyyy = today.getFullYear();
+      dateField.value = `${mm}/${dd}/${yyyy}`;
+    }
+  }
+
+  // Initialize autofill immediately
+  autofillDateIfEmpty();
 
   const saveBtn = $id("saveBtn");
   const savedRounds = $id("savedRounds");
-
   if (!savedRounds) {
     console.error("savedRounds element missing");
     return;
@@ -39,8 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
     keys.forEach(key => {
       const round = localStorage.getItem(key);
       if (!round) return;
-
-      // tolerant extraction: find Score and Slope anywhere in the string
       const scoreMatch = round.match(/Score:\s*(\d+)/);
       const slopeMatch = round.match(/Slope:\s*(\d+)/);
       if (scoreMatch && slopeMatch) {
@@ -56,12 +57,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const handicapField = $id("handicap");
     if (!handicapField) return;
-
     if (handicaps.length === 0) {
       handicapField.value = "—";
       return;
     }
-
     const recent = handicaps.slice(-20);
     const sum = recent.reduce((a, b) => a + b, 0);
     const avg = sum / recent.length;
@@ -79,7 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
       savedRounds.appendChild(li);
     });
 
-    // attach delete handlers
     savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const k = btn.getAttribute("data-key");
@@ -92,23 +90,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Clear inputs but preserve date and handicap
   function clearFormInputs(form) {
     if (!form) return;
     Array.from(form.elements).forEach(el => {
-      // keep the handicap field intact
-      if (el.id === "handicap" || el.name === "handicap") return;
-      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
-        // avoid clearing date auto-fill if the user expects it to remain filled
-        if (el.id === "date") el.value = ""; // keep behavior consistent with previous UX; adjust if you want to preserve date
-        else el.value = "";
-      } else if (el.tagName === "SELECT") {
-        el.selectedIndex = 0;
-      }
+      if (!el) return;
+      const tid = (el.id || "").toLowerCase();
+      if (tid === "handicap" || tid === "date") return;
+      if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") el.value = "";
+      else if (el.tagName === "SELECT") el.selectedIndex = 0;
     });
   }
 
-  // Save round, recalc handicap, append current handicap into the saved string
+  // Save, update UI immediately, append handicap to saved string, keep date
   function saveRoundAndRefreshUI() {
+    autofillDateIfEmpty(); // ensure date present before validating
     const date = $id("date")?.value || "";
     const score = $id("score")?.value || "";
     const slope = $id("slope")?.value || "";
@@ -123,44 +119,46 @@ document.addEventListener("DOMContentLoaded", () => {
     const key = `round_${Date.now()}`;
     const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
 
-    // store without handicap first so calculateCumulativeHandicap includes this new round
+    // store round first so handicap calculation includes it
     localStorage.setItem(key, baseStored);
 
-    // update UI immediately
+    // immediate UI update
     displayRounds();
     calculateCumulativeHandicap();
 
-    // read the freshly calculated handicap and append it to the saved item
-    // tiny delay to avoid mobile focus/keyboard race conditions
+    // append current handicap into stored string after a tiny delay to avoid mobile focus races
     setTimeout(() => {
       const handicapField = $id("handicap");
       const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
       const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
       localStorage.setItem(key, storedWithHandicap);
 
-      // re-render so the saved-round shows the handicap text immediately
+      // re-render so the saved-round shows the handicap immediately
       displayRounds();
 
-      // clear inputs but protect handicap
+      // clear other inputs but keep date and handicap visible
       clearFormInputs($id("roundForm"));
 
-      // defensive re-check for mobile race conditions
-      setTimeout(() => {
-        calculateCumulativeHandicap();
-      }, 60);
+      // ensure date autofill remains if anything cleared it
+      autofillDateIfEmpty();
+
+      // final defensive recalculation
+      setTimeout(() => calculateCumulativeHandicap(), 40);
     }, 40);
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", saveRoundAndRefreshUI);
-  }
+  if (saveBtn) saveBtn.addEventListener("click", saveRoundAndRefreshUI);
 
-  // initialize display and handicap on load
+  // initial render
   displayRounds();
   calculateCumulativeHandicap();
 
-  // recompute when returning to the tab
+  // recalc when returning to the tab
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) calculateCumulativeHandicap();
+    if (!document.hidden) {
+      autofillDateIfEmpty();
+      calculateCumulativeHandicap();
+      displayRounds();
+    }
   });
 });
