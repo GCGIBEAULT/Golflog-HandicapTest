@@ -1,4 +1,3 @@
-update 2025
 document.addEventListener("DOMContentLoaded", () => {
   // helper
   const $id = id => document.getElementById(id) || null;
