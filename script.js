@@ -110,14 +110,12 @@ function saveRoundAndRefreshUI() {
   }
 
   const key = `round_${Date.now()}`;
- const baseStored = [
-  `Course: ${course}`,
-  `Date: ${date}`,
-  `Score: ${score}`,
-  `Slope: ${slope}`,
-  yardage ? `Yardage: ${yardage}` : null,
+const baseStored = [
+  `${date}. Course: ${course}`,
+  `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
   notes ? `Notes: ${notes}` : null
-].filter(Boolean).join(" | ");
+].filter(Boolean).join("\n");
+
 
 localStorage.setItem(key, baseStored);
 displayRounds();
