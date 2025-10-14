@@ -110,10 +110,18 @@ function saveRoundAndRefreshUI() {
   }
 
   const key = `round_${Date.now()}`;
-  const baseStored = `Date: ${date}, Course: ${course}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
-  localStorage.setItem(key, baseStored);
-  displayRounds();
-  calculateCumulativeHandicap();
+ const baseStored = [
+  `Course: ${course}`,
+  `Date: ${date}`,
+  `Score: ${score}`,
+  `Slope: ${slope}`,
+  yardage ? `Yardage: ${yardage}` : null,
+  notes ? `Notes: ${notes}` : null
+].filter(Boolean).join(" | ");
+
+localStorage.setItem(key, baseStored);
+displayRounds();
+calculateCumulativeHandicap();
 
   setTimeout(() => {
     const handicapField = $id("handicap");
