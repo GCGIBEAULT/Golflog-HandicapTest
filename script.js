@@ -101,7 +101,8 @@ if (document.getElementById("handicap")) {
 
 const round = [
   `${date} — ${course}`,
-  `Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage}, Handicap: ${handicapVal}`,
+  `Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage}`,
+  `Handicap: ${handicapVal}`,
   notes ? `Notes: ${notes}` : ""
 ].filter(Boolean).join("<br>");
 
