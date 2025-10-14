@@ -94,38 +94,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function saveRoundAndRefreshUI() {
-    autofillDateIfEmpty();
-    const date = $id("date")?.value || "";
-    const score = $id("score")?.value || "";
-    const slope = $id("slope")?.value || "";
-    const yardage = $id("yardage")?.value || "";
-    const notes = $id("notes")?.value || "";
-    if (!date || !score || !slope) {
-      alert("Please fill Date, Score and Slope before saving.");
-      return;
-    }
-    const key = `round_${Date.now()}`;
-    const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
-    localStorage.setItem(key, baseStored);
-    displayRounds();
-    calculateCumulativeHandicap();
-    setTimeout(() => {
-      const handicapField = $id("handicap");
-      const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
-      const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
-      localStorage.setItem(key, storedWithHandicap);
-      displayRounds();
-      clearFormInputs($id("roundForm"));
-      autofillDateIfEmpty();
-      const df = $id("date");
-      if (df) {
-        df.dispatchEvent(new Event("input", { bubbles: true }));
-        df.blur();
-      }
-      setTimeout(() => calculateCumulativeHandicap(), 40);
-    }, 40);
+function saveRoundAndRefreshUI() {
+  autofillDateIfEmpty();
+
+  const date = $id("date")?.value || "";
+  const course = $id("course")?.value || "";
+  const score = $id("score")?.value || "";
+  const slope = $id("slope")?.value || "";
+  const yardage = $id("yardage")?.value || "";
+  const notes = $id("notes")?.value || "";
+
+  if (!date || !course || !score || !slope) {
+    alert("Please fill Date, Course Name, Score and Slope before saving.");
+    return;
   }
+
+  const key = `round_${Date.now()}`;
+  const baseStored = `Date: ${date}, Course: ${course}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
+  localStorage.setItem(key, baseStored);
+  displayRounds();
+  calculateCumulativeHandicap();
+
+  setTimeout(() => {
+    const handicapField = $id("handicap");
+    const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+    const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
+    localStorage.setItem(key, storedWithHandicap);
+    displayRounds();
+    clearFormInputs($id("roundForm"));
+    autofillDateIfEmpty();
+    const df = $id("date");
+    if (df) {
+      df.dispatchEvent(new Event("input", { bubbles: true }));
+      df.blur();
+    }
+    setTimeout(() => calculateCumulativeHandicap(), 40);
+  }, 40);
+}
 
   if (saveBtn) saveBtn.addEventListener("click", saveRoundAndRefreshUI);
 
