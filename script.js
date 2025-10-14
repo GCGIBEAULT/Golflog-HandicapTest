@@ -11,7 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
-  if (!savedRounds) return;
+  if (!savedRounds) {
+    console.error("savedRounds element missing");
+    return;
+  }
 
   function escapeHtml(s) {
     return String(s)
@@ -28,7 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     keys.forEach(key => {
       const round = localStorage.getItem(key);
-      console.log("round raw:", JSON.stringify(round));
       if (!round) return;
 
       // tolerant extraction: find Score and Slope anywhere in the string
@@ -53,11 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // take mean of most recent 20 rounds (or fewer if not available)
     const recent = handicaps.slice(-20);
     const sum = recent.reduce((a, b) => a + b, 0);
     const avg = sum / recent.length;
-    // round to one decimal place
     handicapField.value = (Math.round(avg * 10) / 10).toFixed(1);
   }
 
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function clearFormInputs(form) {
     if (!form) return;
     Array.from(form.elements).forEach(el => {
-      // keep the handicap field intact
-      if (el.id === "handicap") return;
+      // keep the handicap field intact by id and by name (defensive)
+      if (el.id === "handicap" || el.name === "handicap") return;
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
         el.value = "";
       } else if (el.tagName === "SELECT") {
@@ -98,32 +98,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (saveBtn) {
-    saveBtn.addEventListener("click", () => {
-      const date = document.getElementById("date")?.value || "";
-      const score = document.getElementById("score")?.value || "";
-      const slope = document.getElementById("slope")?.value || "";
-      const yardage = document.getElementById("yardage")?.value || "";
-      const notes = document.getElementById("notes")?.value || "";
+  function saveRoundAndRefreshUI() {
+    const date = document.getElementById("date")?.value || "";
+    const score = document.getElementById("score")?.value || "";
+    const slope = document.getElementById("slope")?.value || "";
+    const yardage = document.getElementById("yardage")?.value || "";
+    const notes = document.getElementById("notes")?.value || "";
 
-      // required fields guard (mandatory entries)
-      if (!date || !score || !slope) {
-        alert("Please fill Date, Score and Slope before saving.");
-        return;
-      }
+    if (!date || !score || !slope) {
+      alert("Please fill Date, Score and Slope before saving.");
+      return;
+    }
 
-      const key = `round_${Date.now()}`;
-      // store a stable, parseable string
-      const stored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
-      localStorage.setItem(key, stored);
+    const key = `round_${Date.now()}`;
+    const stored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
+    localStorage.setItem(key, stored);
 
-      displayRounds();
+    // update UI immediately
+    displayRounds();
+    calculateCumulativeHandicap();
+
+    // clear inputs but protect handicap (defensive)
+    clearFormInputs(document.getElementById("roundForm"));
+
+    // mobile race conditions: ensure handicap is recalculated after any input-clear/blur events
+    // a tiny delay makes the result stable on phones where the virtual keyboard or focus can interfere
+    setTimeout(() => {
       calculateCumulativeHandicap();
-      clearFormInputs(document.getElementById("roundForm"));
-    });
+    }, 60);
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", saveRoundAndRefreshUI);
   }
 
   // initialize display and handicap on load
   displayRounds();
   calculateCumulativeHandicap();
+
+  // also recalc when visibility changes (returning to tab/mobile view)
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) calculateCumulativeHandicap();
+  });
 });
