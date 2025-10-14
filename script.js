@@ -94,49 +94,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-function saveRoundAndRefreshUI() {
-  autofillDateIfEmpty();
+  function saveRoundAndRefreshUI() {
+    autofillDateIfEmpty();
 
-  const date = $id("date")?.value || "";
-  const course = $id("course")?.value || "";
-  const score = $id("score")?.value || "";
-  const slope = $id("slope")?.value || "";
-  const yardage = $id("yardage")?.value || "";
-  const notes = $id("notes")?.value || "";
+    const date = $id("date")?.value || "";
+    const course = $id("course")?.value || "";
+    const score = $id("score")?.value || "";
+    const slope = $id("slope")?.value || "";
+    const yardage = $id("yardage")?.value || "";
+    const notes = $id("notes")?.value || "";
 
-  if (!date || !course || !score || !slope) {
-    alert("Please fill Date, Course Name, Score and Slope before saving.");
-    return;
-  }
+    if (!date || !course || !score || !slope) {
+      alert("Please fill Date, Course Name, Score and Slope before saving.");
+      return;
+    }
 
-  const key = `round_${Date.now()}`;
-const baseStored = [
-  `${date}. Course: ${course}`,
-  `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
-  notes ? `Notes: ${notes}` : null
-].filter(Boolean).join("\n");
-
-
-localStorage.setItem(key, baseStored);
-displayRounds();
-calculateCumulativeHandicap();
-
-  setTimeout(() => {
+    const key = `round_${Date.now()}`;
     const handicapField = $id("handicap");
     const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
-    const storedWithHandicap = `${baseStored}, Handicap: ${currentHandicap}`;
-    localStorage.setItem(key, storedWithHandicap);
+
+    const baseStored = [
+      `${date}. Course: ${course}`,
+      `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
+      notes ? `Notes: ${notes}` : null
+    ].filter(Boolean).join("\n");
+
+    localStorage.setItem(key, baseStored);
     displayRounds();
-    clearFormInputs($id("roundForm"));
-    autofillDateIfEmpty();
-    const df = $id("date");
-    if (df) {
-      df.dispatchEvent(new Event("input", { bubbles: true }));
-      df.blur();
-    }
-    setTimeout(() => calculateCumulativeHandicap(), 40);
-  }, 40);
-}
+    calculateCumulativeHandicap();
+
+    setTimeout(() => {
+      clearFormInputs($id("roundForm"));
+      autofillDateIfEmpty();
+      const df = $id("date");
+      if (df) {
+        df.dispatchEvent(new Event("input", { bubbles: true }));
+        df.blur();
+      }
+      setTimeout(() => calculateCumulativeHandicap(), 40);
+    }, 40);
+  }
 
   if (saveBtn) saveBtn.addEventListener("click", saveRoundAndRefreshUI);
 
