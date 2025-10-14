@@ -61,34 +61,35 @@ document.addEventListener("DOMContentLoaded", () => {
     handicapField.value = (Math.round(avg * 10) / 10).toFixed(1);
   }
 
-function displayRounds() {
-  savedRounds.innerHTML = "";
-  const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
-  keys.forEach(key => {
-    const value = localStorage.getItem(key);
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span>
-                    <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">&times;</button>`;
-    savedRounds.appendChild(li);
-  });
-
-  // attach delete handlers
-  savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const k = btn.getAttribute("data-key");
-      if (k) {
-        localStorage.removeItem(k);
-        displayRounds();
-        calculateCumulativeHandicap();
-      }
+  function displayRounds() {
+    savedRounds.innerHTML = "";
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
+    keys.forEach(key => {
+      const value = localStorage.getItem(key);
+      const li = document.createElement("li");
+      li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span>
+                      <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">&times;</button>`;
+      savedRounds.appendChild(li);
     });
-  });
-}
 
+    // attach delete handlers
+    savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const k = btn.getAttribute("data-key");
+        if (k) {
+          localStorage.removeItem(k);
+          displayRounds();
+          calculateCumulativeHandicap();
+        }
+      });
+    });
+  }
 
   function clearFormInputs(form) {
     if (!form) return;
     Array.from(form.elements).forEach(el => {
+      // keep the handicap field intact
+      if (el.id === "handicap") return;
       if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
         el.value = "";
       } else if (el.tagName === "SELECT") {
