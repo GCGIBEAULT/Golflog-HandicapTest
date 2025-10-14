@@ -1,25 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Auto-fill today's date if empty (and help mobile commit the visual)
-  function autofillDateIfEmpty() {
-    const dateField = document.getElementById("date");
-    if (!dateField) return;
-    if (String(dateField.value || "").trim() === "") {
-      const today = new Date();
-      const mm = String(today.getMonth() + 1).padStart(2, "0");
-      const dd = String(today.getDate()).padStart(2, "0");
-      const yyyy = today.getFullYear();
-      const formatted = `${mm}/${dd}/${yyyy}`;
-      dateField.value = formatted;
-      dateField.setAttribute("value", formatted);
+// Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
+function autofillDateIfEmpty() {
+  const dateField = document.getElementById("date");
+  if (!dateField) return;
+  if (String(dateField.value || "").trim() === "") {
+    const today = new Date();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const yyyy = today.getFullYear();
+    const formatted = `${mm}/${dd}/${yyyy}`;
+    dateField.value = formatted;
+    dateField.setAttribute("value", formatted);
+    dateField.dispatchEvent(new Event("input", { bubbles: true }));
+    requestAnimationFrame(() => {
       dateField.dispatchEvent(new Event("input", { bubbles: true }));
-      requestAnimationFrame(() => {
-        dateField.dispatchEvent(new Event("input", { bubbles: true }));
-        dateField.blur();
-      });
-    }
+      dateField.blur();
+    });
   }
+}
 
-  autofillDateIfEmpty();
+// run it on load
+autofillDateIfEmpty();
 
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
