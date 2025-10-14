@@ -97,7 +97,11 @@ if (document.getElementById("handicap")) {
   document.getElementById("handicap").value = handicapVal;
 }
 
-    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage} | ${notes}`;
+const round = [
+  `${date} — ${course}`,
+  `Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage}, Handicap: ${handicapVal}`,
+  notes ? `Notes: ${notes}` : ""
+].filter(Boolean).join("<br>");
 
     const timestamp = new Date().toISOString();
     try {
