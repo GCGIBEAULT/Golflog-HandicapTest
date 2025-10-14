@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   autofillDateIfEmpty();
 
-  const saveBtn = $id("saveBtn"); // ✅ This line was missing
+  const saveBtn = $id("saveBtn");
   const savedRounds = $id("savedRounds");
   if (!savedRounds) {
     console.error("savedRounds element missing");
@@ -67,11 +67,16 @@ document.addEventListener("DOMContentLoaded", () => {
     savedRounds.innerHTML = "";
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort();
     keys.forEach(key => {
-      const value = localStorage.getItem(key);
+      const value = localStorage.getItem(key) || "";
       const li = document.createElement("li");
-      li.innerHTML = `<span class="round-text">${escapeHtml(value || "")}</span> <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">×</button>`;
+
+      // escape user text but restore intentional <br> for line breaks
+      const safe = escapeHtml(value).replace(/&lt;br&gt;/g, "<br>");
+      li.innerHTML = `<span class="round-text">${safe}</span> <button class="delete-btn" data-key="${escapeHtml(key)}" aria-label="Delete round">×</button>`;
+
       savedRounds.appendChild(li);
     });
+
     savedRounds.querySelectorAll(".delete-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const k = btn.getAttribute("data-key");
@@ -106,30 +111,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!date || !course || !score || !slope) {
       alert("Please fill Date, Course Name, Score and Slope before saving.");
-      return;n-
+      return;
+    }
 
     const key = `round_${Date.now()}`;
-// ensure we have a usable handicap value for the saved round
-const handicapField = $id("handicap");
-let currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
 
-// if handicap is blank or placeholder, derive it immediately from score/slope
-if ((!currentHandicap || currentHandicap === "—") && score && slope) {
-  const s = parseFloat(score);
-  const sl = parseFloat(slope);
-  if (!isNaN(s) && !isNaN(sl) && sl !== 0) {
-    const scaled = ((s - 72) / sl) * 113;
-    const h = Math.max(0, Math.min(scaled, 36));
-    currentHandicap = (Math.round(h * 10) / 10).toFixed(1);
-  }
-}
+    // ensure we have a usable handicap value for the saved round
+    const handicapField = $id("handicap");
+    let currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+
+    // if handicap is blank or placeholder, derive it immediately from score/slope
+    if ((!currentHandicap || currentHandicap === "—") && score && slope) {
+      const s = parseFloat(score);
+      const sl = parseFloat(slope);
+      if (!isNaN(s) && !isNaN(sl) && sl !== 0) {
+        const scaled = ((s - 72) / sl) * 113;
+        const h = Math.max(0, Math.min(scaled, 36));
+        currentHandicap = (Math.round(h * 10) / 10).toFixed(1);
+      }
+    }
 
     const baseStored = [
       `${date}. Course: ${course}`,
       `Score: ${score}, Slope: ${slope}, Handicap: ${currentHandicap}`,
       notes ? `Notes: ${notes}` : null
-   ].filter(Boolean).join("<br>");
-
+    ].filter(Boolean).join("<br>");
 
     localStorage.setItem(key, baseStored);
     displayRounds();
