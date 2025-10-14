@@ -1,8 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // helper
   const $id = id => document.getElementById(id) || null;
 
-  // Autofill today's date in mm/dd/yyyy if empty
+  // Autofill today's date in mm/dd/yyyy if empty and force UI update on mobile
   function autofillDateIfEmpty() {
     const dateField = $id("date");
     if (!dateField) return;
@@ -12,10 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const dd = String(today.getDate()).padStart(2, "0");
       const yyyy = today.getFullYear();
       dateField.value = `${mm}/${dd}/${yyyy}`;
+      // force some mobile browsers to visually commit the programmatic value
+      dateField.dispatchEvent(new Event("input", { bubbles: true }));
+      dateField.blur();
     }
   }
 
-  // Initialize autofill immediately
+  // Run autofill on load
   autofillDateIfEmpty();
 
   const saveBtn = $id("saveBtn");
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/\'/g, "&#39;");
   }
 
+  // Corrected regex uses \d+ (not escaped unicode sequence)
   function calculateCumulativeHandicap() {
     const keys = Object.keys(localStorage).filter(k => k.startsWith("round_"));
     const handicaps = [];
@@ -56,10 +59,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const handicapField = $id("handicap");
     if (!handicapField) return;
+
     if (handicaps.length === 0) {
       handicapField.value = "—";
       return;
     }
+
     const recent = handicaps.slice(-20);
     const sum = recent.reduce((a, b) => a + b, 0);
     const avg = sum / recent.length;
@@ -101,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Save, update UI immediately, append handicap to saved string, keep date
+  // Save, update UI immediately, append handicap to saved string, keep date visible
   function saveRoundAndRefreshUI() {
     autofillDateIfEmpty(); // ensure date present before validating
     const date = $id("date")?.value || "";
@@ -118,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const key = `round_${Date.now()}`;
     const baseStored = `Date: ${date}, Score: ${score}, Slope: ${slope}, Yardage: ${yardage}, Notes: ${notes}`;
 
-    // store round first so handicap calculation includes it
+    // store round so handicap calc includes it
     localStorage.setItem(key, baseStored);
 
     // immediate UI update
@@ -138,8 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // clear other inputs but keep date and handicap visible
       clearFormInputs($id("roundForm"));
 
-      // ensure date autofill remains if anything cleared it
+      // ensure date autofill remains visible and force input event to update UI on mobile
       autofillDateIfEmpty();
+      const df = $id("date");
+      if (df) { df.dispatchEvent(new Event("input", { bubbles: true })); df.blur(); }
 
       // final defensive recalculation
       setTimeout(() => calculateCumulativeHandicap(), 40);
@@ -152,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
   displayRounds();
   calculateCumulativeHandicap();
 
-  // recalc when returning to the tab
+  // when returning to tab, ensure date and UI are up-to-date
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       autofillDateIfEmpty();
