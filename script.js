@@ -92,32 +92,35 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateCumulativeHandicap();
   }
 
-  function saveRound() {
-    const date = document.getElementById("date")?.value || "";
-    const course = document.getElementById("course")?.value || "";
-    const scoreVal = parseFloat(document.getElementById("score")?.value || "");
-    const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
-    const notes = document.getElementById("notes")?.value || "";
+function saveRound() {
+  const date = document.getElementById("date")?.value || "";
+  const course = document.getElementById("course")?.value || "";
+  const scoreVal = parseFloat(document.getElementById("score")?.value || "");
+  const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
+  const notes = document.getElementById("notes")?.value || "";
+  const yardage = document.getElementById("yardage")?.value || "";
 
-    let handicapVal = "";
-    if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
-      const scaled = ((scoreVal - 72) / slopeVal) * 113;
-      handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
-    }
+  let handicapVal = "";
+  if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
+    const scaled = ((scoreVal - 72) / slopeVal) * 113;
+    handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
+  }
 
-    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal} | ${notes}`;
-    const timestamp = new Date().toISOString();
+  const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage} | ${notes}`;
 
-    try {
-      localStorage.setItem("round_" + timestamp, round);
-    } catch (err) {
-      console.warn("localStorage write failed", err);
-    }
+  const timestamp = new Date().toISOString();
+  try {
+    localStorage.setItem("round_" + timestamp, round);
+  } catch (err) {
+    console.warn("localStorage write failed", err);
+  }
 
-    displayRounds();
+  displayRounds();
 
-    const form = document.getElementById("roundForm") || document.querySelector("form");
-    if (form) try { form.reset(); } catch (e) {}
+  const form = document.getElementById("roundForm") || document.querySelector("form");
+  if (form) try { form.reset(); } catch (e) {}
+}
+
 
     const ids = ["date", "course", "score", "slope", "notes"];
     ids.forEach(id => {
