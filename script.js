@@ -106,12 +106,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!date || !course || !score || !slope) {
       alert("Please fill Date, Course Name, Score and Slope before saving.");
-      return;
-    }
+      return;n-
 
     const key = `round_${Date.now()}`;
-    const handicapField = $id("handicap");
-    const currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+// ensure we have a usable handicap value for the saved round
+const handicapField = $id("handicap");
+let currentHandicap = handicapField && handicapField.value ? handicapField.value : "—";
+
+// if handicap is blank or placeholder, derive it immediately from score/slope
+if ((!currentHandicap || currentHandicap === "—") && score && slope) {
+  const s = parseFloat(score);
+  const sl = parseFloat(slope);
+  if (!isNaN(s) && !isNaN(sl) && sl !== 0) {
+    const scaled = ((s - 72) / sl) * 113;
+    const h = Math.max(0, Math.min(scaled, 36));
+    currentHandicap = (Math.round(h * 10) / 10).toFixed(1);
+  }
+}
 
     const baseStored = [
       `${date}. Course: ${course}`,
