@@ -55,23 +55,22 @@ function displayRounds() {
   keys.forEach(key => {
     const raw = localStorage.getItem(key) || "";
 
-    // Normalize and split into lines
-    const normalized = String(raw)
+    // Normalize breaks and split into lines
+    const lines = String(raw)
       .replace(/&lt;br&gt;/gi, "<br>")
       .replace(/\\u003E/gi, ">")
       .replace(/(^|[^<])br>/gi, "<br>")
       .replace(/<br\s*\/?>/gi, "<br>")
       .split("<br>");
 
-    const [line1, ...rest] = normalized;
-    const safeLine1 = escapeHtml(line1 || "");
-    const safeRest = rest.map(escapeHtml).join("<br>");
+    const line1 = lines[0]?.trim() || "";
+    const rest = lines.slice(1).map(l => escapeHtml(l.trim())).join("<br>");
 
     const entry = document.createElement("div");
     entry.className = "round-entry";
     entry.innerHTML = `
       <span class="round-text">
-        <strong>${safeLine1}</strong><br>${safeRest}
+        ${escapeHtml(line1)}<br>${rest}
       </span>
       <button class="delete-btn" data-key="${key}" title="Delete this round">×</button>
     `;
@@ -92,6 +91,7 @@ function displayRounds() {
 
   calculateCumulativeHandicap();
 }
+
 
 
   function saveRound() {
