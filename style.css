@@ -173,13 +173,5 @@ input:focus, textarea:focus, select:focus {
   }
   h1 { font-size: 1.4rem; }
 }
-.round-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 0;
-}
-.round-text {
-  flex: 1;
-}
+
 
