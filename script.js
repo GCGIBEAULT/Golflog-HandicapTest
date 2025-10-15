@@ -114,7 +114,8 @@ function displayRounds() {
       handicapVal = Math.max(0, Math.min(scaled, 36)).toFixed(1);
     }
 
-    const round = `${date} — ${course} | Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage} | ${notes}`;
+const round = `${date} — ${course}<br>Score: ${scoreVal}, Slope: ${slopeVal}, Yardage: ${yardage}<br>Notes: ${notes || ""}`;
+
 
     const timestamp = new Date().toISOString();
     try {
