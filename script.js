@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
   // Auto-fill today's date
   const dateField = document.getElementById("date");
@@ -12,19 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveBtn = document.getElementById("saveBtn");
   const savedRounds = document.getElementById("savedRounds");
   if (!savedRounds) return;
-
-  // Enter key moves from date to course
-  const dateEl = document.getElementById("date");
-  const courseEl = document.getElementById("course");
-  if (dateEl && courseEl) {
-    dateEl.addEventListener("keydown", e => {
-      if ((e.key === "Enter" || e.code === "Enter" || e.keyCode === 13) && document.activeElement === dateEl) {
-        e.preventDefault();
-        e.stopPropagation();
-        setTimeout(() => courseEl.focus(), 0);
-      }
-    });
-  }
 
   function escapeHtml(s) {
     return String(s)
@@ -62,13 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function displayRounds() {
     savedRounds.innerHTML = "<h2>Saved Rounds</h2>";
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("round_")) keys.push(key);
-    }
-    keys.sort().reverse();
-    for (const key of keys) {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith("round_")).sort().reverse();
+    keys.forEach(key => {
       const round = localStorage.getItem(key) || "";
       const entry = document.createElement("div");
       entry.className = "round-entry";
@@ -88,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
-    }
+    });
     calculateCumulativeHandicap();
   }
 
@@ -99,6 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const slopeVal = parseFloat(document.getElementById("slope")?.value || "");
     const yardage = document.getElementById("yardage")?.value || "";
     const notes = document.getElementById("notes")?.value || "";
+
+    // 🔴 Mandatory field check
+    if (!course || isNaN(scoreVal) || isNaN(slopeVal)) {
+      alert("Please enter Course, Score, and Slope before saving.");
+      return;
+    }
 
     let handicapVal = "";
     if (!isNaN(scoreVal) && !isNaN(slopeVal) && slopeVal !== 0) {
@@ -121,6 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (form) try { form.reset(); } catch (e) {}
 
     // Refill date after reset
+    const dateField = document.getElementById("date");
     if (dateField) {
       try {
         const today = new Date();
