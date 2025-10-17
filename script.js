@@ -153,3 +153,20 @@ const round = `${date} — ${course}<br>Score: ${scoreVal}, Slope: ${slopeVal}, 
 
   displayRounds();
 });
+function saveRoundToLocal(roundData, courseLayout) {
+  const course = document.getElementById("course-name").value || "Unnamed Course";
+  const date = document.getElementById("round-date").value || new Date().toLocaleDateString();
+  const handicap = document.getElementById("handicap").value || "N/A";
+
+  const savedRounds = JSON.parse(localStorage.getItem("rounds") || "[]");
+
+  savedRounds.push({
+    course,
+    date,
+    handicap,
+    courseLayout,
+    roundData
+  });
+
+  localStorage.setItem("rounds", JSON.stringify(savedRounds));
+}
